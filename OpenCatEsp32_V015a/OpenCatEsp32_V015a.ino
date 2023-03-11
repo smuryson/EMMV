@@ -373,6 +373,10 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
   //==================================================== webserver //PAPA COMMENTED OUT END
+
+  #ifdef IR_PIN //PAPA HAS HIGHER UP
+    irrecv.enableIRIn();
+  #endif
 }
 
 void loop() {
