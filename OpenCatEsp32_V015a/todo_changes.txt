@@ -1,0 +1,283 @@
+voltage divider pictures added:
+https://ohmslawcalculator.com/voltage-divider-calculator
+
+comment out all referrings to RGB led used in ultrasonic
+
+when downloading PetoiDesktopApp.zip unzip and move "Win" folder to "Program Files" 
+
+//per Adafruit, PWM board: OE - Output enable. Can be used to quickly disable all outputs. When this pin is low all pins are enabled. When the pin is high the outputs
+//are disabled. Pulled low by default so it's an optional pin!
+//That is dangerous as the servos are powered through USB if no battery
+//added 3.3Kohm to PWM board Vcc to OE, then it is disabled by default
+=======================================
+qualityAssurance.h:
+
+void QA() {
+  if (newBoard) {
+#ifndef AUTO_INIT
+    PTL("Run factory quality assurance program? (Y/n)");
+    while (!Serial.available())
+      ;
+    char choice = Serial.read();
+    PTL(choice);
+    if (choice != 'Y' && choice != 'y')
+      return;
+#endif
+    testMPU();
+    //tests...
+    PTL("\nServo test: all servos should rotate and in sync\n");
+    while (1) {
+    loadBySkillName("rest");  //changed from zero to rest; test EEPROM; loadBySkillName("ts");   "ts" was only available for Bittle and NOT Nybble, therefore the next command caused a reboot every time for Nybble when called in QA.
+    skill->perform(); 
+#ifdef IR_PIN
+      if (testIR()) {
+#endif
+        PTL("Pass");
+        playMelody(melodyIRpass, sizeof(melodyIRpass) / 2);
+        break;
+#ifdef IR_PIN
+      } else {
+        PTL("Fail ir");
+        beep(8, 50);
+      }
+#endif
+    }
+  }
+}
+
+============================================
+OpenCatEsp32.ino:
+
+on demand:
+//Send 'R' token to reset the birthmark in the EEPROM so that the robot will restart to reset
+#define AUTO_INIT  //activate it to automatically reset joint and imu calibration without prompts
+
+
+commented out as it causes endless restes, possibly interrupt as mentioned below
+ // bleSetup();
+  //blueSspSetup();
+
+https://github.com/espressif/arduino-esp32/issues/3634:
+#if (RH_PLATFORM == RH_PLATFORM_ESP8266)
+    // interrupt handler and related code must be in RAM on ESP8266,
+    // according to issue #46.
+    #define INTERRUPT_ATTR ICACHE_RAM_ATTR
+#elif (RH_PLATFORM == RH_PLATFORM_ESP32)
+    #define INTERRUPT_ATTR IRAM_ATTR 
+#else
+    #define INTERRUPT_ATTR
+#endif
+----------------------------------------------------------------------------------------------
+#include "soc/soc.h"           // to disable brownout detector
+#include "soc/rtc_cntl_reg.h"  // to disable brownout detector
+in setup():
+WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // to disable brownout detector
+
+------------------------------------------------------------------------------------------
+#define ULTRASONIC      //for Nybble's ultrasonic sensor
+the ultrasonic capability was originally never called in the program 
+todo as it is supposedly originally copied from the blocking example >>> move to interupt
+in io.h, called in loop read_environment():
+read_distance() returns just 0
+
+------------------------------------------------------------------------------------------
+#define ALLROTATELIMIT 140 // range, if defined, servos can be checked and rotate between 90 -/+ ALLROTATELIMIT/2 in setup()
+
+in setup():
+#ifdef ALLROTATELIMIT
+allRotate();
+#endif
+
+---------------------------------------------------------------------------------------
+changed order of function call due to guru mediatation error:
+#ifdef GYRO_PIN
+  imuSetup();
+  //    Serial.println("imu done");
+  //  delay(400);
+#endif
+  bleSetup();
+  blueSspSetup();
+  servoSetup();
+
+to:
+
+ bleSetup();
+ blueSspSetup();
+#ifdef GYRO_PIN
+  //Serial.println("gyro_pin");
+  //  delay(400);
+  imuSetup();
+  //    Serial.println("imu done");
+  //  delay(400);
+#endif
+ servoSetup();
+
+added:
+#define BLT_FIXED_SUFFIX "MK"      //for Nybble's bluetooth name, if defined then the random suffix won't be added in I2cEEPROM.h
+
+=============================================
+OpenCat.h
+change the order of includes:
+move the following on the top:
+#include "sound.h"
+#include "randomMind.h"
+#ifdef ULTRASONIC
+#define TRIGPIN 17 // adjust as needed: Digital pin connected to the trig pin of the ultrasonic sensor
+#define ECHOPIN 17 // adjust as needed: Digital pin connected to the echo pin of the ultrasonic sensor
+#include "ultraSonic_NB.h"
+#endif
+
+get rid of ultrasonic.h and rgb ultrasonic. Replaced by none blocking approach for ultrasonic sensor
+distance calculation in int not float, but in mm
+
+
+changed:
+#define SERVO_FREQ 240
+to
+#define SERVO_FREQ 50
+
+enum ServoModel_t {
+	MG90S = 0, >>> added
+  G41,
+  P1S,
+  P2K
+};
+
+changed:
+#define REGULAR MG90S //G41
+#define KNEE MG90S //G41
+
+==============================================
+io.h:
+
+void readEnvironment() {
+#ifdef GYRO_PIN
+  if (checkGyro)
+    imuUpdated = read_IMU(); // here the IMU is used for later calculation, balance etc.
+#endif
+  read_sound();
+  read_light();
+  if (token == T_SKILL) read_distance(); >>> added and omit in case calling none skills e.g. calibration; todo could be further limited to certain skills
+  read_GPS();
+}
+
+
+int read_distance() moved to ultraSonic_NB.h
+
+==============================================
+espServo.h
+rewritten allRotate();
+added functionality
+
+change:
+added:
+ServoModel servoMG90S   (180,    SERVO_FREQ,      500,      2400);
+
+ServoModel servoG41   (180,    SERVO_FREQ,      500,      2500);
+to
+ServoModel servoG41   (180,    SERVO_FREQ,      500,      2400); (was not smooth at higher angle)
+
+==============================================
+ESPServo.h
+#define MAX_PULSE_WIDTH      2500     // todo the longest pulse sent to a servo, unit is microseconds(us)
+to
+#define MAX_PULSE_WIDTH      2400     // todo the longest pulse sent to a servo, unit is microseconds(us)
+
+
+==============================================
+I2cEEPROM.h
+
+added possible choice between random and fixed suffix:
+
+void genBleID(int suffixDigits = 2) {
+  const char *prefix =
+#ifdef BITTLE
+    "Bittle"
+#elif defined NYBBLE
+    "Nybble"
+#else
+    "Cub"
+#endif
+    ;
+  int prelen = strlen(prefix);
+  //PTL(prelen);
+  char * id = new char [prelen + suffixDigits + 1];
+  strcpy(id, prefix);
+  #ifndef BLT_FIXED_SUFFIX
+  for (int i = 0; i < suffixDigits; i++) {
+    int temp = esp_random() % 16;
+    sprintf(id + prelen + i, "%X", temp);
+  }
+  #else
+  strcat(id, BLT_FIXED_SUFFIX);
+#endif
+  id[prelen + suffixDigits] = '\0';
+  //  for (int i = 0; i < prelen + suffixDigits; i++) {
+  //    i2c_eeprom_write_byte(EEPROM_BLE_NAME + 1 + i, id[i]);
+  //  }
+  Serial.println(id);
+  writeLong(EEPROM_BLE_NAME, id, prelen + suffixDigits);
+}
+
+
+changed order of functions, now first byte ...read, then void ...write,
+also verifying if data is the same to avoid wearing out the eeprom
+
+//changed order of functions for 2-byte integer, now first ...read, then ...write,
+//also verifying if data is the same for high and low to avoid wearing out the eeprom
+//currently if one is different it still will write
+-----------------------------------------------------------------
+added check if the name has changed to EEPROM value:
+
+  int idtestLen = i2c_eeprom_read_byte(EEPROM_BLE_NAME);
+  char * idtest = new char [idtestLen + 1];
+  for (int i = 0; i < idtestLen; i++) {
+    idtest[i] = i2c_eeprom_read_byte(EEPROM_BLE_NAME + 1 + i); //todo
+  }
+  idtest[idtestLen] = '\0';
+  // Serial.println(id);
+  // Serial.println(idtest);
+
+  if (strcmp(id, idtest) == 0) {
+    Serial.println(id);
+  }
+  else {
+    writeLong(EEPROM_BLE_NAME, id, prelen + suffixDigits);
+    Serial.print(id);
+    Serial.println(" written to EEPROM");
+    //Serial.println("not equal");
+  }
+
+=======================================
+in reaction.h
+         if (token == T_GYRO) {
+            checkGyro = false; //todo was !checkGyro;
+            token = checkGyro ? 'G' : 'g';  //G for activated gyro
+          }
+
+=======================================
+reaction.h:, .ino, and openCat.h:
+disable pwm board if voltage is too low in setup(). That is to protect the ESP32 board, otherwise the ss14 schottky diode (USB to Vin) might burn.
+if VOLTAGE defined also checked contiunuously in reaction.h
+
+========================================
+  in imu.h:
+  as the sensor was soldered in BiBoard2 way:
+  #ifdef BiBoard //todo important
+      //ypr[i] = -ypr[i];                            rolled back in version 009, as balance worked opposite. Instead changing sign in skill, e.g. sit
+  #endif
+
+========================================
+in randomMind.h:
+#define IDLE_SHORT 45 // todo was 15
+#define IDLE_LONG 60 // todo was 30
+
+========================================
+ultraSonic_NB.h
+rewritten int read_distance() in V010
+Added useful tests on distance. That can be extended later on for other skills.
+
+==========================================
+change to ESP infrared library
+testing some infrared possibilities
+deleted backup and copy files not needed
