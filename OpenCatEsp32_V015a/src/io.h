@@ -1,3 +1,4 @@
+//HANDLES ALL INPUT + OUTPUT
 void read_sound() {
 }
 int read_light() {
@@ -25,8 +26,12 @@ void readEnvironment() {
 #endif
   read_sound();
   read_light();
+
+//ADDED
 #ifdef ULTRASONIC
-  if ((token == T_SKILL) || (distancetriggeredW)) read_distance(); //added and omit in case calling none skills e.g. calibration; todo could be further limited to certain skills
+  //distance check only occurs when calling a skill (starting with 'k' token) + when cat in motion
+  //check omitted when calling none-'k' skills e.g. calibration
+  if ((token == T_SKILL) || (distancetriggeredW) || (distancetriggeredC) || (distancetriggeredT)) read_distance(); //PAPA DID NOT HAVE CRAWL AND TROT CHECKS
   //read_distance();
   // if (distanceMM > 1000) {
   // loadBySkillName("hi");

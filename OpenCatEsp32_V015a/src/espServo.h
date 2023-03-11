@@ -3,7 +3,7 @@ ServoModel servoMG90S   (180,    SERVO_FREQ,      500,      2400);
 ServoModel servoG41   (180,    SERVO_FREQ,      500,      2500);
 ServoModel servoP1S   (290,    SERVO_FREQ,      500,      2500);//1s/4 = 250ms 250ms/2500us=100Hz
 ServoModel servoP2K   (290,    SERVO_FREQ,      500,      2500);
-#if defined BiBoard2 || defined BiBoard_i2cPWM //BiBoard2  or BiBoard w/ BiBoard_i2cPWM
+#if defined BiBoard2 || defined BiBoard_i2cPWM //BiBoard2  or BiBoard w/ BiBoard_i2cPWM //O/C
 #include "pcaServo.h"
 #endif
 
@@ -23,7 +23,8 @@ void servoSetup() {
   i2c_eeprom_read_buffer(EEPROM_CALIB, (byte *)servoCalib, DOF);
   //------------------angleRange  frequency  minPulse  maxPulse;
   ServoModel *model;
-#if defined BiBoard && not defined BiBoard_i2cPWM
+
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
   PTL("Setup ESP32 PWM servo driver...");
   // Allow allocation of all timers
   ESP32PWM::allocateTimer(0);
@@ -75,7 +76,7 @@ void servoSetup() {
     zeroPosition[joint] = model->getAngleRange() / 2 + float(middleShift[joint])  * rotationDirection[joint];
     calibratedZeroPosition[joint] = zeroPosition[joint] + float(servoCalib[joint])  * rotationDirection[joint];
   }
-#else
+#else //O/C
   Serial.println("Set up PCA9685 PWM servo driver...");
   pwm.begin();
   pwm.setup(servoModelList);
@@ -85,9 +86,9 @@ void servoSetup() {
 
 void setServoP(unsigned int p) {
   for (byte s = 0; s < PWM_NUM; s++)
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
     servo[s].writeMicroseconds(p);
-#else
+#else //O/C
     pwm.writeMicroseconds(s, p);
 #endif
 }
@@ -130,9 +131,9 @@ void allRotate() {
         for (int pos = 90 + ALLROTATELIMIT / 2; pos > 90 - ALLROTATELIMIT / 2; pos -= 1) {
           // in steps of 1 degree
           for (s = 0; s < PWM_NUM; s++) {
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
             servo[s].write(pos);    // tell servo to go to position in variable 'pos'
-#else //BiBoard2 or BiBoard_i2cPWM
+#else //BiBoard2 or BiBoard_i2cPWM -> O/C
             pwm.writeAngle(s, pos);
 #endif
             delay(5);             // waits 15ms for the servo to reach the position
@@ -145,9 +146,9 @@ void allRotate() {
         for (int pos = 90 - ALLROTATELIMIT / 2; pos < 90 + ALLROTATELIMIT / 2; pos += 1) {
           // in steps of 1 degree
           for (s = 0; s < PWM_NUM; s++) {
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
             servo[s].write(pos);    // tell servo to go to position in variable 'pos'
-#else //BiBoard2
+#else //BiBoard2 -> O/C
             pwm.writeAngle(s, pos); //may go out of range. check!
 #endif
             delay(15);             // waits 15ms for the servo to reach the position
@@ -162,9 +163,9 @@ void allRotate() {
       else {  // single
         s = serialString.toInt();
         for (int pos = 90 + ALLROTATELIMIT / 2; pos > 90 - ALLROTATELIMIT / 2; pos -= 1) {
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
           servo[s].write(pos);    // tell servo to go to position in variable 'pos'
-#else //BiBoard2
+#else //BiBoard2 -> O/C
           pwm.writeAngle(s, pos); //may go out of range. check!
 #endif
           delay(2);             // waits 15ms for the servo to reach the position
@@ -175,9 +176,9 @@ void allRotate() {
         }
         delay(500);
         for (int pos = 90 - ALLROTATELIMIT / 2; pos < 90 + ALLROTATELIMIT / 2; pos += 1) {
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
           servo[s].write(pos);    // tell servo to go to position in variable 'pos'
-#else //BiBoard2
+#else //BiBoard2 -> O/C
           pwm.writeAngle(s, pos); //may go out of range. check!
 #endif
           delay(15);             // waits 15ms for the servo to reach the position
@@ -198,9 +199,9 @@ void allRotate() {
 #ifdef GYRO_PIN
 void allRotateWithIMU() {
   for (int s = 0; s < PWM_NUM; s++) {
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
     servo[s].write(90 + ypr[1]  + ypr[2] ); // tell servo to go to position in variable 'pos'
-#else //BiBoard2
+#else //BiBoard2 -> O/C
     pwm.writeAngle(s, 90 + ypr[1]  + ypr[2] );
 #endif
     //    delay(1);             // waits 15ms for the servo to reach the position
@@ -217,7 +218,7 @@ void allRotateWithIMU() {
 void shutServos() {
   ServoModel *model;
   for (byte s = 0; s < PWM_NUM ; s++) {//PWM_NUM
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
     /* the following method can shut down the servos.
        however, because a single Timer is divided to generate four PWMs, there's random noise when the PWM transits to zero.
        It will cause the servo to jump before shutdown.
@@ -245,7 +246,7 @@ void shutServos() {
     //        break;
     //    }
     //    servo[s].attach(PWM_pin[s], model);
-#else //using PCA9685
+#else //using PCA9685 -> O/C
     pwm.setPWM(s, 0, 4096);
 #endif
   }

@@ -1,4 +1,4 @@
-/* BiBoard
+/* BiBoard by 李荣仲 (Li Rongzhong)
     PWM:
                         |--------------------------------
                         |    PWM[0]           PWM[6]    |
@@ -66,27 +66,39 @@
    BiBoard2 (16)  skip 0~8  skip 0~8  skip0~4
 */
 
-#define BIRTHMARK 'x' //Send 'R' token to reset the birthmark in the EEPROM so that the robot will know to restart and reset
-//const uint16_t kIrLed = 4;  // initialized in infraredHaier.h ESP8266 GPIO pin to use. Recommended: 4 (D4).
+//birthmark to check whether board has already been initialised
+#define BIRTHMARK 'x' //Send 'R' token to reset the birthmark in the EEPROM -> robot will restart/reset
+//const uint16_t kIrLed = 4;  // initialized in infraredHaier.h ESP8266 GPIO pin to use. Recommended: 4 
+
+//NOT OUR BOARD /////////////////////////////////////////
 #if defined BiBoard && not defined BiBoard_i2cPWM
 #define GYRO_PIN
-#define PWM_NUM 12
+#define PWM_NUM 12 //how many servos in use
 #define INTERRUPT_PIN 26  // use pin 2 on Arduino Uno & most boards
 #define BUZZER 25
 #define VOLTAGE 36 // VPinput only; calculation in reaction.h todo include resisor divider?
-#define LOW_VOLTAGE 6.6
-#define IR_PIN 14  // pin IR receiver, was 23 
+#define LOW_VOLTAGE 6.6 
+#define IR_PIN 14  
 
-float low_voltage = 0.0;
+//PWM_NUM -> 12 //PAPA HAD BEFORE #define NYBBLE || BITTLE
+//                                headPan, tilt, tailPan, NA
+//L:Left-R:Right-F:Front-B:Back---LF, RF, RB, LB
+const uint8_t PWM_pin[PWM_NUM] = {19,  4,  2, -1,   //head or shoulder roll {19,  4,  2, 27,
+                                  33,  5, 15, 14,   //shoulder pitch or hips
+                                  32, 18, 13, 12    //knee
+                                 };
+
+//float low_voltage = 0.0; //PAPA had commented in
+
 //m move or c calibrate servos:
 // m0 head pan
 // m1 head tilt
 // m2 tail pan
-// m3 ? na
-// m4 ?
-// m5 ?
-// m6 ?
-// m7 ?
+// m3 --
+// m4 --
+// m5 --
+// m6 --
+// m7 --
 // m8 is shoulder left front
 // m9 is shoulder right front
 // m10 is shoulder right back
@@ -96,67 +108,65 @@ float low_voltage = 0.0;
 // m14 knee right back
 // m15 knee left back
 // Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33
-//                                headPan, tilt, tailPan, NA
-//L:Left-R:Right-F:Front-B:Back---LF, RF, RB, LB
-const uint8_t PWM_pin[PWM_NUM] = {19,  4,  2, -1,   //head or shoulder roll {19,  4,  2, 27,
-                                  33,  5, 15, 14,   //shoulder pitch or hips
-                                  32, 18, 13, 12    //knee
-                                 };
-#if defined NYBBLE || defined BITTLE
-//#define SERVO_FREQ 240 todo changed to 50
+
+#if defined NYBBLE || defined BITTLE //#define SERVO_FREQ 240 todo changed to 50
 #define SERVO_FREQ 50
 #else //CUB
 #define SERVO_FREQ 240
 #endif
 
+//THE BOARD WE ARE USING////////////////////////////////////////
 #else //BiBoard2
 #define RXD2 35 //input only
 #define TXD2 32 // below was for touch
 #define GYRO_PIN
-#define PWM_NUM 16
+#define PWM_NUM 16 //how many servos in use
 #define INTERRUPT_PIN 26  // todo originally it was 27  |use pin 2 on Arduino Uno & most boards
 #define BUZZER 25 // was 14
 #define VOLTAGE 36 // VPinput only, was 4; , calculation in reaction.h
-#define LOW_VOLTAGE 6.6 //todo !!!!!!!!!!!!!!!!!!!!
+#define LOW_VOLTAGE 6.6 //blue LED turns on
 #define EXTREME_LOW_VOLTAGE 5.5 // if defined, then tested in setup() and disables the PWM board; also in reaction.h tested if VOLTAGE defined
 
 #define vFactor 310 //= ~2400/7.8
 
 //#define vFactor 381.82  //: 2520 / 6.6 //PAPA
 
-#define DISABLE_PWM 27 // pin used to disable PWM board
+#define DISABLE_PWM 27 // pin used to disable PWM board and servos
 bool pwmDisabled = 1;
 //#define NEOPIXEL_PIN 15
 //#define PWM_LED_PIN  5
-#define IR_PIN 14
+#define IR_PIN 14 // pin IR receiver, was 23 for some reason
+
 // #define TOUCH0 12
 // #define TOUCH1 13
 // #define TOUCH2 32 used for TXD2
 // #define TOUCH3 33
 
-//                                headPan, tilt, tailPan, NA
-const uint8_t PWM_pin[PWM_NUM] = {0,       1,     2,    -1, //head
-                                  -1,       -1,     -1,    -1,     //shoulder roll
-                                  8,       9,      10,    11,     //shoulder pitch
-                                  //                                  13,       10,     6,    2,     //shoulder roll
-                                  //                                  14,        9,     5,    1,     //shoulder pitch
-                                  12,       13,      14,    15      //knee
+//PWM_NUM -> 16
+//                                headPan,  tilt,   tailPan,  NA
+const uint8_t PWM_pin[PWM_NUM] = {  0,        1,      2,      -1,     //head+tail
+                                  - 1,       -1,      -1,     -1,     //shoulder roll
+                                    8,        9,      10,     11,     //shoulder pitch
+                                  //13,       10,      6,      2,     //shoulder roll
+                                  //14,        9,      5,      1,     //shoulder pitch
+                                    12,       13,      14,     15     //knee
                                  };
-//L:Left R:Right F:Front B:Back   LF,        RF,    RB,   LB
+//L:Left R:Right F:Front B:Back     LF,       RF,      RB,     LB
 /*
-  0		1		2		3	4	5	6	7	8	9	10	11	12	13	14	15
+  0		    1		  2		 3	 4	 5	 6	 7	 8	 9	 10	 11	 12	 13	 14	 15
   HPan	HTilt	TPan	-1	-1	-1	-1	-1	SLF	SRF	SRB	SLB	KLF	KRF	KRB	KLB
-  0,		7,		-3,		1,	3,	0,	0,	0,	-7,	-7,	-3,	-5,	0,	1,	2,	-4,
+  0,		  7,	 -3,	 1,	 3,	 0,	 0,	 0,	-7, -7,	 -3, -5, 0,	 1,	 2,	 -4,
 */
-//#define SERVO_FREQ 240 todo changed to 50
-#define SERVO_FREQ 50
 
+//#define SERVO_FREQ 240 todo changed to 50 //also done ealier, cann be commented out?
+#define SERVO_FREQ 50
 #endif
 
+//disables PWM board if power too low
 int test_external_power() {
   //todo use names than numbers
   float voltage = analogRead(VOLTAGE);
-  //if ((voltage * 6.6 / 2520) < EXTREME_LOW_VOLTAGE) {
+  //if incoming V is < 5.5V disables PWM board
   if ((voltage / vFactor) < EXTREME_LOW_VOLTAGE) {
     pwmDisabled = 1;
     digitalWrite(DISABLE_PWM, HIGH);
@@ -166,7 +176,7 @@ int test_external_power() {
   else {
     pwmDisabled = 0;
   }
-  if (!pwmDisabled) digitalWrite(DISABLE_PWM, LOW); //enable PWM board
+  if (!pwmDisabled) digitalWrite(DISABLE_PWM, LOW); //enable PWM board -> OE is LOW: all pins enabled
   return voltage;
 }
 
@@ -193,14 +203,14 @@ enum ServoModel_t {
 #define X_LEG
 #define REGULAR MG90S //G41
 #define KNEE MG90S //G41
-#include "InstinctNybbleESP.h"
+#include "InstinctNybbleESP.h" //all Nybble skills
 
 #elif defined BITTLE
 #define HEAD
 #define LL_LEG
 #define REGULAR P1S
 #define KNEE P1S
-#include "InstinctBittleESP.h"
+#include "InstinctBittleESP.h" //all Bittle skills
 
 #elif defined CUB
 #ifdef BiBoard2
@@ -210,10 +220,11 @@ enum ServoModel_t {
 #define LL_LEG
 #define REGULAR P1S
 #define KNEE P2K
-#include "InstinctCubESP.h"
+#include "InstinctCubESP.h" //all cub skills
 //#define MPU_YAW180
 #endif
 
+//李荣仲 uses different servos for knees; we do not
 ServoModel_t servoModelList[] = {
   REGULAR, REGULAR, REGULAR, REGULAR,
   REGULAR, REGULAR, REGULAR, REGULAR,
@@ -236,7 +247,7 @@ bool newBoard = false;
 #define T_INDEXED_SIMULTANEOUS_ASC  'i'
 #define T_INDEXED_SIMULTANEOUS_BIN  'I'
 #define T_JOINTS      'j'
-#define T_SKILL       'k'
+#define T_SKILL       'k' //needs to be added before every skill
 #define T_SKILL_DATA  'K'
 #define T_LISTED_BIN  'L'
 #define T_MOVE_ASC    'm'
@@ -268,7 +279,7 @@ float degPerRad = 180 / M_PI;
 float radPerDeg = M_PI / 180;
 
 //control related variables
-#define CHECK_BATTERY_PERIOD 5000 //todo was 10000  //every 10 seconds. 60 mins -> 3600 seconds
+#define CHECK_BATTERY_PERIOD 5000 //todo was 10000, now every 5 seconds
 int uptime = -1;
 int frame;
 int tStep = 1;
@@ -334,7 +345,7 @@ int angleLimit[][2] = {
   { -180, 120}, { -180, 120}, { -80, 200}, { -80, 200},
   { -66, 100}, { -66, 100}, { -66, 100}, { -66, 100},
 };
-#else
+#else //NYBBLE + BITTLE
 int8_t rotationDirection[] = {1, -1, 1, 1,
                               1, -1, 1, -1,
                               1, -1, -1, 1,
@@ -375,8 +386,8 @@ int16_t imuOffset[9] = {0, 0, 0,
                         0, 0, 0
                        };
 
-//abbreviations
-#define PT(s) Serial.print(s)  //makes life easier
+//abbreviations for printing
+#define PT(s) Serial.print(s)
 #define PTL(s) Serial.println(s)
 #define PTF(s) Serial.print(F(s))//trade flash memory for dynamic memory with F() function
 #define PTLF(s) Serial.println(F(s))

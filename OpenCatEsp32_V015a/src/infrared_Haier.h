@@ -23,14 +23,12 @@
 *   * ESP-01 modules are tricky. We suggest you use a module with more GPIOs
       for your first time. e.g. ESP-12 etc.
 */
-
-//FOR HAIER AIRCONDITIONER
 // #include <Arduino.h>
 // #include <IRremoteESP8266.h>
 #include <IRsend.h>
 #include <ir_Haier.h>
 
-const uint16_t kIrLed = 4;  // ESP8266 GPIO pin to use. Recommended: 4 (D4).
+const uint16_t kIrLed = 4;  // ESP8266 GPIO pin to use. Recommended: 4
 IRHaierAC176 ac(kIrLed);    // Set the GPIO used for sending messages.
 
 struct acHaier              // todo, not needed yet, for future

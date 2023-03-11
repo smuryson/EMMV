@@ -37,7 +37,7 @@ bool lowBattery() {
   if (currentTime > uptime) {
 
     uptime = currentTime;
-    float voltage = test_external_power();
+    float voltage = test_external_power(); //disables PWM board if power too low
 
     //PT("vFactor: "); PT(vFactor); PT("; low_voltage: "); PTL(low_voltage);
     //PT(">Current power: "); PT(voltage * 6.6 / 2520); PT("V: "); //PT(voltage); PTL(" raw");
@@ -280,9 +280,9 @@ void reaction() {
 
               int duty = zeroPosition[target[0]] + float(servoCalib[target[0]])  * rotationDirection[target[0]];
               int actualServoIndex = (PWM_NUM == 12 && target[0] > 3) ? target[0] - 4 : target[0];
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
               servo[actualServoIndex].write(duty);
-#else
+#else //O/C
               pwm.writeAngle(actualServoIndex, duty);
 #endif
               //              printRange(DOF);
@@ -301,9 +301,9 @@ void reaction() {
             }
 #ifdef T_SERVO_MICROSECOND
             else if (token == T_SERVO_MICROSECOND) {
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
               servo[PWM_pin[target[0]]].writeMicroseconds(target[1]);
-#else
+#else //O/C
               pwm.writeMicroseconds(PWM_pin[target[0]], target[1]);
 #endif
             }
