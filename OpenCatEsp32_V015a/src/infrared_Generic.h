@@ -25,12 +25,11 @@
 */
 // #include <Arduino.h>
 // #include <IRremoteESP8266.h>
-//FOR NIKAI TV
 #include <IRsend.h>
 
 // sample data at the very below
 
-//const uint16_t kIrLed = 4;          // ESP8266 GPIO pin to use. Recommended: 4 (D4).
+//const uint16_t kIrLed = 4;          // ESP8266 GPIO pin to use. Recommended: 4.
 IRsend irsend(kIrLed);
 
 void Nikai_TV_setup() {
@@ -48,7 +47,7 @@ void Nikai_TV_handle(int TVcommand) { // receives from io.h
   }
 }
 
-//TCL TV: //ASSIGN TO MY TV
+//TCL TV:
 //Protocol  : NIKAI
 //on7off:
 //Code      : 0xD5F2A (24 Bits)

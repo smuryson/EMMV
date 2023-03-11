@@ -122,8 +122,8 @@ void QA() {
     //tests...
     PTL("\nServo test: all servos should rotate and in sync\n");
     while (1) {
-      //loadBySkillName("rest");  //test EEPROM, org "ts" available in instictBittleESP.h NOT in instictNybbleESP.h !!!
-      //skill->perform(); //todo that kills the cat not the dog as it was not available
+      //loadBySkillName("rest");  //test EEPROM, skill "ts" ONLY available in instictBittleESP.h NOT in instictNybbleESP.h 
+      //skill->perform(); //performing "ts" would thus kill the cat
 #ifdef IR_PIN
       if (testIR()) {
 #endif

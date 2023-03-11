@@ -33,7 +33,7 @@ int read_distance() {
     if (distanceMM < MINDISTANCE) {
       distanceMM = 0;
     }
-    if (!strcmp(lastCmd, "wkF") && distanceMM < 150) { //todo
+    if (!strcmp(lastCmd, "wkF") && distanceMM < 150) { //todo WALKING
       token = T_SKILL;
       strcpy(newCmd, "bk");
       newCmdIdx = 2;
@@ -41,7 +41,7 @@ int read_distance() {
       distancetriggered_timeout = true;
       distance_timeout_old = millis();
     }
-    else if (!strcmp(lastCmd, "trF") && distanceMM < 350) { //todo
+    else if (!strcmp(lastCmd, "trF") && distanceMM < 350) { //todo TROTTING
       token = T_SKILL;
       strcpy(newCmd, "bk");
       newCmdIdx = 2;
@@ -49,7 +49,7 @@ int read_distance() {
       distancetriggered_timeout = true;
       distance_timeout_old = millis();
     }
-    else if (!strcmp(lastCmd, "crF") && distanceMM < 150) { //todo
+    else if (!strcmp(lastCmd, "crF") && distanceMM < 150) { //todo CRAWLING
       token = T_SKILL;
       strcpy(newCmd, "bk");
       newCmdIdx = 2;

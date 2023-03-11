@@ -10,9 +10,9 @@ void calibratedPWM(byte i, float angle, float speedRatio = 0) {
   //otherwise the speed ratio is compared to 1 degree per second.
 
   for (int s = 0; s <= steps; s++) {
-#if defined BiBoard && not defined BiBoard_i2cPWM
+#if defined BiBoard && not defined BiBoard_i2cPWM //N/C
     servo[actualServoIndex].write(duty + (steps == 0 ? 0 : (1 + cos(M_PI * s / steps)) / 2 * (duty0 - duty)));
-#else
+#else //O/C
     pwm.writeAngle(actualServoIndex, duty + (steps == 0 ? 0 : (1 + cos(M_PI * s / steps)) / 2 * (duty0 - duty)));
 #endif
     //    delayMicroseconds(1);

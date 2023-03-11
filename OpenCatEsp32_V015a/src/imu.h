@@ -255,7 +255,7 @@ bool read_IMU() {
 
     for (byte i = 0; i < 3; i++) {//no need to flip yaw
       ypr[i] *= degPerRad;
-#ifdef BiBoard //todo important
+#ifdef BiBoard //todo important -> adjusts balance, could be inversed, need to test
       ypr[i] = -ypr[i];
 #endif
     }

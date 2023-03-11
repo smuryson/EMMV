@@ -40,9 +40,9 @@ bool EEPROMOverflow = false;
 
 
 #define EEPROM_BIRTHMARK_ADDRESS 0
-#define EEPROM_IMU 1
-#define EEPROM_CALIB 20
-#define EEPROM_BLE_NAME 36
+#define EEPROM_IMU 1                  //2*9 = 18 byte
+#define EEPROM_CALIB 20               //16byte
+#define EEPROM_BLE_NAME 36            //10byte
 #define EEPROM_RESERVED 50
 #define SERIAL_BUFF 100
 
@@ -81,7 +81,7 @@ void i2cDetect() {
     Serial.println("- done");
 }
 
-//changed order of functions, now first byte ...read, then void ...write,
+//changed order of functions, now first byte-read, then void-write,
 //also verifying if data is the same to avoid wearing out the eeprom
 byte i2c_eeprom_read_byte(unsigned int eeaddress) {
   byte rdata = 0xFF;
@@ -96,9 +96,10 @@ byte i2c_eeprom_read_byte(unsigned int eeaddress) {
 
 void i2c_eeprom_write_byte(unsigned int eeaddress, byte data) {
   byte wdata = data;  // write data
-
   byte rdata = i2c_eeprom_read_byte(eeaddress);  // read data
   PTL("read " + String(rdata));
+
+  //checks if data is the same
   if (rdata != wdata) {
     Wire.beginTransmission(DEVICE_ADDRESS);
     Wire.write((int)(eeaddress >> 8));    // MSB
@@ -111,9 +112,8 @@ void i2c_eeprom_write_byte(unsigned int eeaddress, byte data) {
 }
 
 
-//changed order of functions, now first ...read, then ...write,
-//also verifying if data is the same for high and low to avoid wearing out the eeprom
-//currently if one is different it still will write
+//changed order of functions, now first int16_t-read, then void-write,
+//also verifying if data is the same for high and low to avoid wearing out the eeprom -> currently if one is different it still will write
 //This function will read a 2-byte integer from the EEPROM at the specified address and address + 1
 int16_t i2c_eeprom_read_int16(unsigned int eeaddress) {
   Wire.beginTransmission(DEVICE_ADDRESS);
@@ -138,6 +138,8 @@ void i2c_eeprom_write_int16(unsigned int eeaddress, int16_t p_value) {
 
   byte lowByte = ((p_value >> 0) & 0xFF);
   byte highByte = ((p_value >> 8) & 0xFF);
+
+  //checks if data is the same
   if ((lowByte != rLowByte) || (highByte != rHighByte)) {
     Wire.beginTransmission(DEVICE_ADDRESS);
     Wire.write((int)(eeaddress >> 8));    // MSB
@@ -225,7 +227,7 @@ void readLong(unsigned int eeAddress, char *data) {
   PTL("finish reading");
 }
 
-
+//checks birthmark if reset is requested
 bool newBoardQ(unsigned int eeaddress) {
   return i2c_eeprom_read_byte(eeaddress) != BIRTHMARK;
 }
@@ -235,6 +237,7 @@ The five boxing wizards jump quickly. Pack my box with five dozen liquor jugs.";
 
 //char data[]={16,-3,5,7,9};
 
+//choice between random or fixed suffix -> generates Bluetooth ID
 void genBleID(int suffixDigits = 2) {
   const char *prefix =
 #ifdef BITTLE
@@ -249,6 +252,8 @@ void genBleID(int suffixDigits = 2) {
   //PTL(prelen);
   char *id = new char[prelen + suffixDigits + 1];
   strcpy(id, prefix);
+
+//generate random
 #ifndef BLT_FIXED_SUFFIX
   for (int i = 0; i < suffixDigits; i++) {
     int temp = esp_random() % 16;
@@ -262,6 +267,7 @@ void genBleID(int suffixDigits = 2) {
   //    i2c_eeprom_write_byte(EEPROM_BLE_NAME + 1 + i, id[i]);
   //  }
 
+  //check if EEPROM ID has changed
   int idtestLen = i2c_eeprom_read_byte(EEPROM_BLE_NAME);
   char *idtest = new char[idtestLen + 1];
   for (int i = 0; i < idtestLen; i++) {
@@ -271,9 +277,9 @@ void genBleID(int suffixDigits = 2) {
   // Serial.println(id);
   // Serial.println(idtest);
 
-  if (strcmp(id, idtest) == 0) {
+  if (strcmp(id, idtest) == 0) { //same
     Serial.println(id);
-  } else {
+  } else { //different
     writeLong(EEPROM_BLE_NAME, id, prelen + suffixDigits);
     Serial.print(id);
     Serial.println(" written to EEPROM");
@@ -307,8 +313,8 @@ void i2cEepromSetup() {
   Wire.begin();  // initialise the connection
   delay(1);
 
+  //initialise board if it's a new board
   newBoard = newBoardQ(EEPROM_BIRTHMARK_ADDRESS);
-
   if (newBoard) {
     PTLF("Set up the new board...");
     playMelody(melodyInit, sizeof(melodyInit) / 2);
@@ -352,7 +358,7 @@ void copydataFromBufferToI2cEeprom(unsigned int eeAddress, int8_t *dataBuffer) {
       Wire.write((byte)dataBuffer[writtenToEE++]);
       writtenToWire++;
       eeAddress++;
-    } while ((--len > 0) && (eeAddress % PAGE_LIMIT) && (writtenToWire < WIRE_LIMIT));  //be careful with the chained conditions
+    } while ((--len > 0) && (eeAddress % PAGE_LIMIT) && (writtenToWire < WIRE_LIMIT));  //a little gamble with the chained conditions
     //self-increment may not work as expected
     Wire.endTransmission();
     delay(6);  // needs 5ms for page write
