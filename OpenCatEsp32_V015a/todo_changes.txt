@@ -8,7 +8,7 @@ when downloading PetoiDesktopApp.zip unzip and move "Win" folder to "Program Fil
 //per Adafruit, PWM board: OE - Output enable. Can be used to quickly disable all outputs. When this pin is low all pins are enabled. When the pin is high the outputs
 //are disabled. Pulled low by default so it's an optional pin!
 //That is dangerous as the servos are powered through USB if no battery
-//added 3.3Kohm to PWM board Vcc to OE, then it is disabled by default
+//added 3.3Kohm to PWM board Vcc to OE, then it is disabled by default -> resistor on PWM board
 =======================================
 qualityAssurance.h:
 
@@ -53,10 +53,11 @@ on demand:
 #define AUTO_INIT  //activate it to automatically reset joint and imu calibration without prompts
 
 
-commented out as it causes endless restes, possibly interrupt as mentioned below
- // bleSetup();
-  //blueSspSetup();
+commented out as it causes endless resets, possibly interrupt as mentioned below
+// bleSetup();
+//blueSspSetup();
 
+//THIS IS NOWHERE IN THE CODE????
 https://github.com/espressif/arduino-esp32/issues/3634:
 #if (RH_PLATFORM == RH_PLATFORM_ESP8266)
     // interrupt handler and related code must be in RAM on ESP8266,
@@ -262,7 +263,7 @@ if VOLTAGE defined also checked contiunuously in reaction.h
 
 ========================================
   in imu.h:
-  as the sensor was soldered in BiBoard2 way:
+  as the balance sensor was soldered in BiBoard2 way:
   #ifdef BiBoard //todo important
       //ypr[i] = -ypr[i];                            rolled back in version 009, as balance worked opposite. Instead changing sign in skill, e.g. sit
   #endif

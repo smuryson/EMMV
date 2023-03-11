@@ -104,7 +104,7 @@ esp_chip_info_t chip_info;
 
 #include "src/OpenCat.h"
 
-//-------------------------------------------webserver, not needed as a camera module is being used
+//-------------------------------------------webserver, needs to be revised for camera
 // WebServer server(80);
 
 // void handleRoot() {

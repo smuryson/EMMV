@@ -1,5 +1,5 @@
-//add WiFi and OTA with: ArduinoOTA.setPassword("adminCAT");  //  It is a good measure to set the OTA password related to the program.
-//                                                                If the Network changes, it will help to prevent accidently overwriting the wrong target.
+//add WiFi and OTA with: ArduinoOTA.setPassword("adminCAT");  //very trustworthy password :-) 
+//password helps to prevent accidently overwriting the wrong target
 //void i2c_eeprom_write_byte() reads first and if different, content gets written
 
 #include <WiFi.h>
@@ -10,8 +10,8 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 //#include "Arduino.h" 
-#include "soc/soc.h"            // to disable brownout detector
-#include "soc/rtc_cntl_reg.h"   // to disable brownout detector
+#include "soc/soc.h"            // to disable brownout detector -> black out = total loss of Voltage
+#include "soc/rtc_cntl_reg.h"   // to disable brownout detector -> brown out = dip in Voltage supply
 #include "driver/rtc_io.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
@@ -26,7 +26,7 @@ IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 
 #define APSSID "NybbleMK_CAT"
-#define APPSK "thereisnospoon"  // standard password in many examples
+#define APPSK "thereisnospoon"  // standard password :-)
 int apConnectingCounterSet = 10;
 int apConnectingCounter = apConnectingCounterSet;
 bool switchToAP = false;
@@ -36,55 +36,51 @@ uint32_t Freq = 0;
 esp_chip_info_t chip_info;
 
 
-//modify the model and board definitions
-//***********************
+//WHICH ROBOT ********************************************************************************
 //#define BITTLE                //Petoi 9 DOF robot dog: 1 on head + 8 on leg
 #define NYBBLE                  //Petoi 11 DOF robot cat: 2 on head + 1 on tail + 8 on leg
 //#define CUB
+//********************************************************************************************
 
-/* That is to
-  + -|     Vin + battery
-   _
-  | |
-  Ra
-  | |
-   -
-   ----- Vout pin 36 (input only, sensor VP)
-   |
-   _
-  | |
-  Rb
-  | |
-   -
-   |
-  gnd
-  https://byjus.com/voltage-divider-calculator/
-  Voltage Divider Formula:
-  Vout = (Rb/(Ra+Rb))* Vin
+/*RESISTORS 
+-> ESP32 can only take 3.3V Volt, so we need to adjust the ~8V Input accordingly!
 
-  Ra 4700 ohms
-  Rb 2200 ohms
-  Vin 6.6 Volts
-  Vout 2.1043478260869564 Volts
+GND -> connect to -> 2K res (Rb) -> solder to -> 5K1 res (Ra) -> connect to -> VIN
 
-  Vin 8.4 Volts
-  Vout 2.6782608695652175 Volts
+|GND| - |Rb 2K| x |Ra 5K1| - |VIN| - |Battery +| 
+          |VOUT GPIO 36|
+
+-> VOUT pin 36 is input only, sensor VP
+ 
+https://byjus.com/voltage-divider-calculator/
+Voltage Divider Formula: Vout = (Rb/(Ra+Rb))* Vin
+
+  Ra 5K1 ohm = 5100
+  Rb 2K ohm = 2000
+
+  VIN = 6.6V -> Vout ~1.85915 Volts
+
+  VIN = 7.8V -> Vout ~2.14084 Volts
+
+  -> also in reaction.h
 */
 
+//WHICH BOARD *******************************************************************************************************************
 #define BiBoard               //ESP32 Board with 12 channels of built-in PWM for joints
-//                              BiBoard VOLTAGE pin 36 (VP, input only, via voltage devider) 4.2 V-3.3 V range
-//                              for 18650, two in series (8.4 to 6.6V: ~R1 4700/ R2 2200 OHM gives:) >>> ~2.7-2.1 V
+                              //BiBoard VOLTAGE pin 36 (VP, input only, via voltage devider) 4.2V-3.3V range
+                              //for 18650, two in series (8.4 to 6.6V: ~R1 4700/ R2 2200 OHM gives:) >>> ~2.7-2.1 V
 
+//ADDED O/C (=our case)
 #define BiBoard_i2cPWM        //ESP32 adding 16 channels i2c pwm (PCA9685),  all other settings can stay the same as for the BiBoard
 //                              BiBoard VOLTAGE pin 36 (VP, input only, via voltage devider), Li 18650 voltage range between 4.2 V-3.3 V,
-//                              two in series: ~R1 4700/ R2 2200 OHM>>> ~2.7-2.1 V
-//                              per Adafruit, PWM board: OE - Output enable. Can be used to quickly disable all outputs. When this pin is
-//                              low all pins are enabled. When the pin is high the outputs
-//                              are disabled. Pulled low by default so it's an optional pin!
-//                              THAT's NOT a GOOD IDEA! Should be enabled with knowledge and safety.
+//                              two in series: ~Ra 5100/ Rb 2000 OHM>>> ~2.2-1.8V
+//                              OE PIN on PWM board: OE = Output enable -> can be used to quickly disable all outputs; LOW per default (optional pin)
+//                                  OE is LOW: all pins enabled
+//                                  OE is HIGH: all pins disabled                 
+//                              SHOULD BE ENABLED FOR SAFETY -> so NOT optional for us!
 
 //#define BiBoard2            //ESP32 Board with 16 channels of PCA9685 PWM for joints, //#define VOLTAGE 4 in BiBoard2
-//***********************
+//********************************************************************************************************************************
 
 //Send a 'R' token from the serial terminal to reset the birthmark in the EEPROM so that the robot will restart to reset
 //#define AUTO_INIT           //activate it to automatically reset joint and imu calibration without prompts
@@ -101,14 +97,13 @@ esp_chip_info_t chip_info;
 //#define ALLROTATELIMIT 90     // range, if defined, servos can be checked and rotated between 90 -/+ (ALLROTATELIMIT/2) in setup().
 //                                 The program is not moving on automatically.
 
-#define BLT_FIXED_SUFFIX "MK"   // for Nybble's bluetooth name, if defined then the random suffix won't be added in I2cEEPROM.h
-//                                 when setting up a new board
+#define BLT_FIXED_SUFFIX "MK" //if defined: random suffix won't be added to Nyyble Bluetooth name in I2cEEPROM.h when setting up a new board
 
-#define LOW_VOLTAGE_LED 2 // blue LED
+#define LOW_VOLTAGE_LED 2 // blue LED -> turns on when power low
 
 #include "src/OpenCat.h"
 
-//-------------------------------------------webserver, not needed as a camera module is being used //PAPA COMMENTED OUT START
+//-------------------------------------------webserver, camera might need more elabarote server //PAPA COMMENTED OUT START
 WebServer server(80);
 
 void handleRoot() {
@@ -151,10 +146,11 @@ void setup() {
   //------------------------------------------------------AC HAIER just for testing here
   Haier_AC_setup();                                        // currently initializing and switch off
   //======================================================AC HAIER
-#ifdef EXTREME_LOW_VOLTAGE                      // that tests that there is no external power source available
-  test_external_power();                        // and only the USB powers the cat
+#ifdef EXTREME_LOW_VOLTAGE                      //test if external power supply is there -> usb only not enough power
+  test_external_power();                        //disables PWM board if power is too low
 #endif
 
+//notify what robot is in use
 #ifdef BITTLE
   PTLF("Bittle");
 #elif defined NYBBLE
@@ -170,7 +166,7 @@ void setup() {
   //  delay(400);
 #endif
 
-#ifndef QUICKandROUGH_TEST
+#ifndef QUICKandROUGH_TEST  //PAPA HAS POSSIBLY COMMENTED OUT?
   bleSetup();                                   //x moved up from below
   blueSspSetup();                               //x moved up from below
 #endif
@@ -199,9 +195,9 @@ void setup() {
   pinMode(PWM_LED_PIN, OUTPUT);
 #endif
 
-/*#ifdef IR_PIN                               // that has been moved, target is to have not only receive, but also transmit //PAPA CO
-  irrecv.enableIRIn();                      //if left in readings not correct
-#endif*/
+  //#ifdef IR_PIN                               // that has been moved, target is to have not only receive, but also transmit
+  //  irrecv.enableIRIn();
+  //#endif
 
   QA();                                         // quality assurance module
 
@@ -377,10 +373,6 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
   //==================================================== webserver //PAPA COMMENTED OUT END
-
-  #ifdef IR_PIN                               // PAPA HAS IT HIGHER UP
-    irrecv.enableIRIn();                      
-  #endif
 }
 
 void loop() {
