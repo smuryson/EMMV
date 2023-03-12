@@ -88,8 +88,7 @@ const uint8_t PWM_pin[PWM_NUM] = {19,  4,  2, -1,   //head or shoulder roll {19,
                                   32, 18, 13, 12    //knee
                                  };
 
-//float low_voltage = 0.0; //PAPA had commented in
-
+//PWM BOARD SERVO POSITIONING
 //m move or c calibrate servos:
 // m0 head pan
 // m1 head tilt

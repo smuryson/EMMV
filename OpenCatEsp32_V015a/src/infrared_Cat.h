@@ -17,7 +17,7 @@ decode_results results;
 //abbreviation //gait/posture/function names
 #define K01 "F"         //forward
 #define K02 "g"         //turn off gyro feedback to boost speed
-#define K03 "buttUp"    //butt up :-) //PAPA DID NOT HAVE
+#define K03 "buttUp"    //butt up :-) //ADDED
 
 #define K05 "lu"        //look up
 #define K06 "ck"        //check around
@@ -234,8 +234,4 @@ int IRkey() {
       return (0);                      //Serial.println("null");
   }// End Case
   // //delay(100); // Do not get immediate repeat //no need because the main loop is slow
-
-/*#ifdef IR_PIN                               //PAPA HAS IT IN INO
-  irrecv.enableIRIn();                      
-#endif*/
 }
