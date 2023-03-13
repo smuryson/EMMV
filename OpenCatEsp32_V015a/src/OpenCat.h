@@ -80,7 +80,7 @@
 #define LOW_VOLTAGE 6.6 
 #define IR_PIN 14  
 
-//PWM_NUM -> 12 //PAPA HAD BEFORE #define NYBBLE || BITTLE
+//PWM_NUM -> 12 //MOVED FROM BEFORE #define NYBBLE || BITTLE
 //                                headPan, tilt, tailPan, NA
 //L:Left-R:Right-F:Front-B:Back---LF, RF, RB, LB
 const uint8_t PWM_pin[PWM_NUM] = {19,  4,  2, -1,   //head or shoulder roll {19,  4,  2, 27,

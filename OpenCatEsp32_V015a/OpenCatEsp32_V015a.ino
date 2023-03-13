@@ -195,13 +195,9 @@ void setup() {
   pinMode(PWM_LED_PIN, OUTPUT);
 #endif
 
-  //#ifdef IR_PIN                               // that has been moved, target is to have not only receive, but also transmit
-  //  irrecv.enableIRIn();
-  //#endif
+QA();                                         // quality assurance module
 
-  QA();                                         // quality assurance module
-
-  i2c_eeprom_write_byte(EEPROM_BIRTHMARK_ADDRESS, BIRTHMARK);  //finish the test and mark the board as initialized
+i2c_eeprom_write_byte(EEPROM_BIRTHMARK_ADDRESS, BIRTHMARK);  //finish the test and mark the board as initialized
 
 #ifdef VOLTAGE                                  // todo, moved down; in general watching the voltage of the power supply
   digitalWrite(LOW_VOLTAGE_LED, LOW); // Blue LED off, goes on in reaction.h when low voltage
