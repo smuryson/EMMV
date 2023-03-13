@@ -31,7 +31,7 @@ void dealWithExceptions() {
 
 //float vFactor = 3200 / 8.4; //2.37
 
-float low_voltage = LOW_VOLTAGE * vFactor; //PAPA missing 'float' here
+float low_voltage = LOW_VOLTAGE * vFactor; //ADDED float (type was missing)
 bool lowBattery() {
   long currentTime = millis() / CHECK_BATTERY_PERIOD;
   if (currentTime > uptime) {

@@ -80,7 +80,7 @@
 #define LOW_VOLTAGE 6.6 
 #define IR_PIN 14  
 
-//PWM_NUM -> 12 //PAPA HAD BEFORE #define NYBBLE || BITTLE
+//PWM_NUM -> 12 //MOVED FROM BEFORE #define NYBBLE || BITTLE
 //                                headPan, tilt, tailPan, NA
 //L:Left-R:Right-F:Front-B:Back---LF, RF, RB, LB
 const uint8_t PWM_pin[PWM_NUM] = {19,  4,  2, -1,   //head or shoulder roll {19,  4,  2, 27,
@@ -88,8 +88,7 @@ const uint8_t PWM_pin[PWM_NUM] = {19,  4,  2, -1,   //head or shoulder roll {19,
                                   32, 18, 13, 12    //knee
                                  };
 
-//float low_voltage = 0.0; //PAPA had commented in
-
+//PWM BOARD SERVO POSITIONING
 //m move or c calibrate servos:
 // m0 head pan
 // m1 head tilt
@@ -127,7 +126,7 @@ const uint8_t PWM_pin[PWM_NUM] = {19,  4,  2, -1,   //head or shoulder roll {19,
 #define LOW_VOLTAGE 6.6 //blue LED turns on
 #define EXTREME_LOW_VOLTAGE 5.5 // if defined, then tested in setup() and disables the PWM board; also in reaction.h tested if VOLTAGE defined
 
-#define vFactor 310 //= ~2400/7.8
+#define vFactor 307 //= ~2400/7.8
 
 //#define vFactor 381.82  //: 2520 / 6.6 //PAPA
 

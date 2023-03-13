@@ -156,7 +156,7 @@ int IRkey() // takes action based on IR code received
   }// End Case
   //delay(100); // Do not get immediate repeat //no need because the main loop is slow
 }
-} //PAPA WAS MISSING THIS ONE
+} //ADDED (was missing)
 
 bool testIR() {
   long start = millis();

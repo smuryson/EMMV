@@ -3,9 +3,9 @@
 //void i2c_eeprom_write_byte() reads first and if different, content gets written
 
 #include <WiFi.h>
-#include <WiFiClient.h> //PAPA CO
-#include <WebServer.h> //PAPA CO
-#include <WiFiClientSecure.h> //PAPA CO
+//#include <WiFiClient.h> //CI for webserver
+//#include <WebServer.h> //CI for webserver
+//#include <WiFiClientSecure.h> //CI for webserver
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
@@ -103,8 +103,8 @@ Voltage Divider Formula: Vout = (Rb/(Ra+Rb))* Vin
 
 #include "src/OpenCat.h"
 
-//-------------------------------------------webserver, camera might need more elabarote server //PAPA COMMENTED OUT START
-WebServer server(80);
+//-------------------------------------------webserver, camera might need more elabarote server //CI for webserver START
+/*WebServer server(80);
 
 void handleRoot() {
   server.send(200, "text/plain", "hello from WebCat!");
@@ -123,8 +123,8 @@ void handleNotFound() {
       message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
     }
     server.send(404, "text/plain", message);
-}
-//==========================================================webserver //PAPA COMMENTED OUT END
+}*/
+//==========================================================webserver //CI for webserver END
 
 void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);    // to disable brownout detector
@@ -195,13 +195,9 @@ void setup() {
   pinMode(PWM_LED_PIN, OUTPUT);
 #endif
 
-  //#ifdef IR_PIN                               // that has been moved, target is to have not only receive, but also transmit
-  //  irrecv.enableIRIn();
-  //#endif
+QA();                                         // quality assurance module
 
-  QA();                                         // quality assurance module
-
-  i2c_eeprom_write_byte(EEPROM_BIRTHMARK_ADDRESS, BIRTHMARK);  //finish the test and mark the board as initialized
+i2c_eeprom_write_byte(EEPROM_BIRTHMARK_ADDRESS, BIRTHMARK);  //finish the test and mark the board as initialized
 
 #ifdef VOLTAGE                                  // todo, moved down; in general watching the voltage of the power supply
   digitalWrite(LOW_VOLTAGE_LED, LOW); // Blue LED off, goes on in reaction.h when low voltage
@@ -361,8 +357,8 @@ void setup() {
   Serial.println(" Hz");
   //==================================================== chip_info
 
-  //---------------------------------------------------- webserver //PAPA COMMENTED OUT START
-  server.on("/", handleRoot);
+  //---------------------------------------------------- webserver //CI for webserver START
+  /*server.on("/", handleRoot);
 
   server.on("/inline", []() {
     server.send(200, "text/plain", "WebCat: this works as well");
@@ -371,10 +367,10 @@ void setup() {
   server.onNotFound(handleNotFound);
 
   server.begin();
-  Serial.println("HTTP server started");
-  //==================================================== webserver //PAPA COMMENTED OUT END
+  Serial.println("HTTP server started");*/
+  //==================================================== webserver //CI for webserver END
 
-  #ifdef IR_PIN //PAPA HAS HIGHER UP
+  #ifdef IR_PIN //MOVED FROM AFTER '#ifdef PWM_LED_PIN'
     irrecv.enableIRIn();
   #endif
 }
@@ -385,9 +381,9 @@ void loop() {
   lowBattery();                                 //x
 #endif
 
-  //---------------------------------------------------- webserver //PAPA COMMENTED OUT START
-  server.handleClient();
-  //==================================================== webserver //PAPA COMMENTED OUT END
+  //---------------------------------------------------- webserver //CI for webserver START
+  //server.handleClient();
+  //==================================================== webserver //CI for webserver END
 
   //—self-initiative
   //  if (autoSwitch) { //the switch can be toggled on/off by the 'z' token
