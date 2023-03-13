@@ -25,7 +25,7 @@ IPAddress local_IP(192, 168, 0, 92);
 IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-#define APSSID "NybbleMK_CAT"
+#define APSSID "EMMV_CAT" //changed from "NybbleMK_CAT"
 #define APPSK "thereisnospoon"  // standard password :-)
 int apConnectingCounterSet = 10;
 int apConnectingCounter = apConnectingCounterSet;
