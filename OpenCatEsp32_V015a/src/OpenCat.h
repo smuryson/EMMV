@@ -126,7 +126,7 @@ const uint8_t PWM_pin[PWM_NUM] = {19,  4,  2, -1,   //head or shoulder roll {19,
 #define LOW_VOLTAGE 6.6 //blue LED turns on
 #define EXTREME_LOW_VOLTAGE 5.5 // if defined, then tested in setup() and disables the PWM board; also in reaction.h tested if VOLTAGE defined
 
-#define vFactor 305 //= ~2400/7.8
+#define vFactor 307 //= ~2400/7.8
 
 //#define vFactor 381.82  //: 2520 / 6.6 //PAPA
 
