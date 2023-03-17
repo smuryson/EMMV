@@ -29,7 +29,7 @@
 
 // sample data at the very below
 
-//const uint16_t kIrLed = 4;          // ESP8266 GPIO pin to use. Recommended: 4.
+const uint16_t kIrLed = 4;          // ESP8266 GPIO pin to use. Recommended: 4.
 IRsend irsend(kIrLed);
 
 void Nikai_TV_setup() {
