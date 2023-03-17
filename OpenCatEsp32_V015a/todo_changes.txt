@@ -3,8 +3,6 @@ https://ohmslawcalculator.com/voltage-divider-calculator
 
 comment out all referrings to RGB led used in ultrasonic
 
-when downloading PetoiDesktopApp.zip unzip and move "Win" folder to "Program Files" 
-
 //per Adafruit, PWM board: OE - Output enable. Can be used to quickly disable all outputs. When this pin is low all pins are enabled. When the pin is high the outputs
 //are disabled. Pulled low by default so it's an optional pin!
 //That is dangerous as the servos are powered through USB if no battery
@@ -53,11 +51,10 @@ on demand:
 #define AUTO_INIT  //activate it to automatically reset joint and imu calibration without prompts
 
 
-commented out as it causes endless resets, possibly interrupt as mentioned below
-// bleSetup();
+commented out as it causes endless resets, possibly interrupt as mentioned in espressif forum below vvvvvv
+//bleSetup();
 //blueSspSetup();
 
-//THIS IS NOWHERE IN THE CODE????
 https://github.com/espressif/arduino-esp32/issues/3634:
 #if (RH_PLATFORM == RH_PLATFORM_ESP8266)
     // interrupt handler and related code must be in RAM on ESP8266,
@@ -68,6 +65,8 @@ https://github.com/espressif/arduino-esp32/issues/3634:
 #else
     #define INTERRUPT_ATTR
 #endif
+
+-> we now check if QUICKandROUGH_TEST is defined or not to toggle access to bleSetup(); and blueSspSetup(); (see below)
 ----------------------------------------------------------------------------------------------
 #include "soc/soc.h"           // to disable brownout detector
 #include "soc/rtc_cntl_reg.h"  // to disable brownout detector
@@ -90,11 +89,11 @@ allRotate();
 #endif
 
 ---------------------------------------------------------------------------------------
-changed order of function call due to guru mediatation error:
+changed order of function call due to guru mediatation error (mentioned above):
 #ifdef GYRO_PIN
   imuSetup();
-  //    Serial.println("imu done");
-  //  delay(400);
+  //Serial.println("imu done");
+  //delay(400);
 #endif
   bleSetup();
   blueSspSetup();
@@ -106,15 +105,15 @@ to:
  blueSspSetup();
 #ifdef GYRO_PIN
   //Serial.println("gyro_pin");
-  //  delay(400);
+  //delay(400);
   imuSetup();
-  //    Serial.println("imu done");
-  //  delay(400);
+  //Serial.println("imu done");
+  //delay(400);
 #endif
  servoSetup();
 
 added:
-#define BLT_FIXED_SUFFIX "MK"      //for Nybble's bluetooth name, if defined then the random suffix won't be added in I2cEEPROM.h
+#define BLT_FIXED_SUFFIX "MK"      //for EMMV bluetooth name, if defined then the random suffix won't be added in I2cEEPROM.h
 
 =============================================
 OpenCat.h
@@ -148,6 +147,7 @@ changed:
 #define REGULAR MG90S //G41
 #define KNEE MG90S //G41
 
+-> we only use MG90S 
 ==============================================
 io.h:
 
@@ -221,12 +221,11 @@ void genBleID(int suffixDigits = 2) {
 }
 
 
-changed order of functions, now first byte ...read, then void ...write,
-also verifying if data is the same to avoid wearing out the eeprom
+//changed order of functions, now first byte-read, then void-write,
+//also verifying if data is the same to avoid wearing out the eeprom
 
-//changed order of functions for 2-byte integer, now first ...read, then ...write,
-//also verifying if data is the same for high and low to avoid wearing out the eeprom
-//currently if one is different it still will write
+//changed order of functions, now first int16_t-read, then void-write,
+//also verifying if data is the same for high and low to avoid wearing out the eeprom -> currently if one is different it still will write
 -----------------------------------------------------------------
 added check if the name has changed to EEPROM value:
 
@@ -265,7 +264,7 @@ if VOLTAGE defined also checked contiunuously in reaction.h
   in imu.h:
   as the balance sensor was soldered in BiBoard2 way:
   #ifdef BiBoard //todo important
-      //ypr[i] = -ypr[i];                            rolled back in version 009, as balance worked opposite. Instead changing sign in skill, e.g. sit
+      //ypr[i] = -ypr[i];                           ->   change reversed again bc balance worked opposite. Instead changing sign in skill, e.g. sit
   #endif
 
 ========================================

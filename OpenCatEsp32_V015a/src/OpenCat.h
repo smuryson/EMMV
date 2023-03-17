@@ -68,7 +68,7 @@
 
 //birthmark to check whether board has already been initialised
 #define BIRTHMARK 'x' //Send 'R' token to reset the birthmark in the EEPROM -> robot will restart/reset
-//const uint16_t kIrLed = 4;  // initialized in infraredHaier.h ESP8266 GPIO pin to use. Recommended: 4 
+//const uint16_t kIrLed = 4; 
 
 //NOT OUR BOARD /////////////////////////////////////////
 #if defined BiBoard && not defined BiBoard_i2cPWM
@@ -125,11 +125,7 @@ const uint8_t PWM_pin[PWM_NUM] = {19,  4,  2, -1,   //head or shoulder roll {19,
 #define VOLTAGE 36 // VPinput only, was 4; , calculation in reaction.h
 #define LOW_VOLTAGE 6.6 //blue LED turns on
 #define EXTREME_LOW_VOLTAGE 5.5 // if defined, then tested in setup() and disables the PWM board; also in reaction.h tested if VOLTAGE defined
-
 #define vFactor 307 //= ~2400/7.8
-
-//#define vFactor 381.82  //: 2520 / 6.6 //PAPA
-
 #define DISABLE_PWM 27 // pin used to disable PWM board and servos
 bool pwmDisabled = 1;
 //#define NEOPIXEL_PIN 15
@@ -267,7 +263,6 @@ bool newBoard = false;
 #define T_XLEG        'x'
 #define T_RANDOM_MIND 'z'
 //#define T_WRITE_SKILL 'Z'         //todo new shortcut to write skills
-#define T_SEND_IR_AC 'A'            //todo new shortcut to send infrared signal, referring to AC
 #define T_SEND_IR_W 'W'             //todo new shortcut to send infrared signal, referring to 'W'hatever generic device
 #define T_ACCELERATE  '.'
 #define T_DECELERATE  ','
@@ -479,7 +474,6 @@ long distance_timeout_old = 0;
 #endif
 #ifdef IR_PIN
 #include "infrared_Cat.h"
-#include "infrared_Haier.h"
 #include "infrared_Generic.h"
 #endif
 #include "espServo.h"

@@ -144,9 +144,7 @@ void setup() {
   while (Serial.available() && Serial.read()) delay(1);    // empty buffer
   while (Serial2.available() && Serial2.read()) delay(1);  // empty buffer
   PTLF("\n* Start *");
-  //------------------------------------------------------AC HAIER just for testing here
-  Haier_AC_setup();                                        // currently initializing and switch off
-  //======================================================AC HAIER
+
 #ifdef EXTREME_LOW_VOLTAGE                        // that would test that there is no external power source available
   test_external_power();                          // and only the USB powers the cat
 #endif

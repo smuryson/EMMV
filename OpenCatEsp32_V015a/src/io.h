@@ -169,15 +169,7 @@ void read_serial() {
       }
       else cmdBuffer = Serial.readStringUntil('\n');
 
-      if (token == T_SEND_IR_AC) {
-        pinMode(2, OUTPUT);
-        digitalWrite(2, LOW); // Blue LED off
-        Serial.print("buffer: ");
-        Serial.println(cmdBuffer);
-        int ACvalue = atoi(cmdBuffer.c_str());
-        Haier_AC_handle(ACvalue);
-      }
-      else if (token == T_SEND_IR_W) { // 'W'
+      if (token == T_SEND_IR_W) { // 'W'
         pinMode(2, OUTPUT);
         digitalWrite(2, LOW); // Blue LED off
         Serial.print("buffer: ");
@@ -214,14 +206,7 @@ void read_serial() {
         cmdBuffer = Serial2.readStringUntil('~');  // todo, that must be replaced '~' ASCII code = 126; may introduce bug when the angle is 126
       }
       else cmdBuffer = Serial2.readStringUntil('\n');
-      if (token == T_SEND_IR_AC) {
-        pinMode(2, OUTPUT);
-        digitalWrite(2, LOW); // Blue LED off
-        Serial.println(cmdBuffer);
-        int ACvalue = atoi(cmdBuffer.c_str());
-        Haier_AC_handle(ACvalue);
-      }
-      else if (token == T_SEND_IR_W) { // 'W'
+      if (token == T_SEND_IR_W) { // 'W'
         pinMode(2, OUTPUT);
         digitalWrite(2, LOW); // Blue LED off
         Serial.print("buffer: ");
@@ -249,9 +234,6 @@ void read_serial() {
     newCmdIdx = 2;
     token = SerialBT.read();
     if (token == T_SKILL_DATA) readSerialBTUntil(dataBuffer, '~');
-    else if (token == T_SEND_IR_AC) {
-      readSerialBTUntil(dataBuffer, '~');
-    }
     else if (SerialBT.available() > 0) {
       String cmdBuffer;  //may overflow after many iterations. I use this method only to support "no line ending" in the serial monitor
       if (token == T_INDEXED_SIMULTANEOUS_BIN || token == T_LISTED_BIN || token == T_MOVE_BIN || token == T_BEEP_BIN || token == T_COLOR) {
@@ -260,14 +242,7 @@ void read_serial() {
       }
       else
         cmdBuffer = SerialBT.readStringUntil('\n');
-      if (token == T_SEND_IR_AC) {
-        pinMode(2, OUTPUT);
-        digitalWrite(2, LOW); // Blue LED off
-        Serial.println(cmdBuffer);
-        int ACvalue = atoi(cmdBuffer.c_str());
-        Haier_AC_handle(ACvalue);
-      }
-      else if (token == T_SEND_IR_W) { // 'W'
+      if (token == T_SEND_IR_W) { // 'W'
         pinMode(2, OUTPUT);
         digitalWrite(2, LOW); // Blue LED off
         Serial.print("buffer: ");

@@ -143,9 +143,7 @@ void setup() {
   while (Serial.available() && Serial.read()) delay(1);    // empty buffer
   while (Serial2.available() && Serial2.read()) delay(1);  // empty buffer
   PTLF("\n* Start *");
-  //------------------------------------------------------AC HAIER just for testing here
-  Haier_AC_setup();                                        // currently initializing and switch off
-  //======================================================AC HAIER
+ 
 #ifdef EXTREME_LOW_VOLTAGE                      //test if external power supply is there -> usb only not enough power
   test_external_power();                        //disables PWM board if power is too low
 #endif
@@ -166,7 +164,7 @@ void setup() {
   //  delay(400);
 #endif
 
-#ifndef QUICKandROUGH_TEST  //PAPA HAS POSSIBLY COMMENTED OUT?
+#ifndef QUICKandROUGH_TEST  
   bleSetup();                                   //x moved up from below
   blueSspSetup();                               //x moved up from below
 #endif

@@ -17,19 +17,12 @@ void dealWithExceptions() {
   //OURS
   Ra 2000 ohms
   Rb 5100 ohms 
+
   Vin 7.8 Volts -> Vout ~2.14084 Volts
 
   Vin 6.6 Volts -> Vout ~1.85915 Volts
+*/
 
-  //PAPA
-  Ra 4700 ohms
-  Rb 2200 ohms
-  Vin 8.4 Volts
-  Vout 2.6782608695652175 Volts >>> ~3326
-  Vin 6.6 Volts
-  Vout 2.1043478260869564 Volts >>> ~2606*/
-
-//float vFactor = 3200 / 8.4; //2.37
 
 float low_voltage = LOW_VOLTAGE * vFactor; //ADDED float (type was missing)
 bool lowBattery() {
@@ -136,7 +129,6 @@ void reaction() {
     }
     switch (token) {
       case T_GYRO:
-      case T_SEND_IR_AC:
       case T_PRINT_GYRO:
       case T_VERBOSELY_PRINT_GYRO:
       case T_RANDOM_MIND:
