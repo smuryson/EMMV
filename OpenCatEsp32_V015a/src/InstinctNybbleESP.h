@@ -1,5 +1,5 @@
 #define NYBBLE
-//number of skills: 30
+//number of skills: 30 skills
 
 const int8_t bd[] PROGMEM = {
   59, 0, 0, 1,
